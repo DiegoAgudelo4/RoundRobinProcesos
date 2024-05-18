@@ -1,0 +1,46 @@
+    """
+    quantum = 20 #ms
+    tiempo_intcambio = 10#ms
+    procesos = [
+        {'nombre': 'p0', 'tiempo_llegada': 0, 'quantum_necesario': 40,
+         'lista_ie': [{'ie': 40, 'ie_necesaria': 20}]},
+        {'nombre': 'p1', 'tiempo_llegada': 25, 'quantum_necesario': 60,
+         'lista_ie': [{'ie': 0, 'ie_necesaria': 0}]},
+        {'nombre': 'p2', 'tiempo_llegada': 35, 'quantum_necesario': 40,
+         'lista_ie': [{'ie': 0, 'ie_necesaria': 0}]},
+  
+      ]
+    #llenar_procesos()
+"""
+
+
+Funcion para llenar los procesos a mano
+
+def llenar_procesos():
+    num_procesos = int(input('Ingrese el número de procesos: '))
+
+    for i in range(num_procesos):
+        nombre = input(f'Ingrese el nombre del proceso {i}: ')
+        tiempo_llegada = int(input(f'Ingrese el tiempo de llegada del proceso [{nombre}]: '))
+        quantum_necesario = int(input(f'Ingrese el quantum necesario del proceso [{nombre}]: '))
+
+        num_ie = int(input(f'Ingrese la cantidad de E/S del proceso [{nombre}]: '))
+        lista_ie = [obtener_ie() for _ in range(num_ie)]
+
+        proceso = {
+            'nombre': nombre,
+            'tiempo_llegada': tiempo_llegada,
+            'quantum_necesario': quantum_necesario,
+            'lista_ie': lista_ie
+        }
+
+        procesos.append(proceso)
+
+
+{'tamanoQ': 20, 
+'tamanoI': '10', 
+'procesos': 
+    [{'nombre': 'P0', 'tiempo_llegada': 0, 'quantum_necesario': 40, 'lista_ie': [{'ie': 40, 'ie_necesaria': 20}]}, 
+    {'nombre': 'P1', 'tiempo_llegada': 25, 'quantum_necesario': 60, 'lista_ie': [{'ie': 0, 'ie_necesaria': 0}]}, 
+    {'nombre': 'P2', 'tiempo_llegada': 35, 'quantum_necesario': 40, 'lista_ie': [{'ie': 0, 'ie_necesaria': 0}]}]
+}

@@ -1,5 +1,7 @@
+#graficos de python
 import tkinter as tk
-
+#procesar 
+from RoundRobin import obtener_entrada_usuario
 class Proceso:
     def __init__(self, nombre="Nuevo", tiempo_llegada=0, ncpu=0, es=None):
         self.nombre = nombre
@@ -53,8 +55,9 @@ class ProcesoApp:
     
     def agregar_es(self):
         self.guardar_cambios_todos()
-        for i in range(len(self.procesos)):
-            self.procesos[i].es.append({"ie": 0, "ie_necesaria": 0})
+        for i in range(len(self.procesos)
+        ):
+            self.procesos[i].es.append({"es": 0, "es_necesaria": 0})
         self.columnas.extend(["E/S", "NCPU"])
         self.crear_encabezado()
         self.mostrar_procesos()
@@ -77,13 +80,13 @@ class ProcesoApp:
                 pass
         elif column % 2 == 0:  # Entradas de E/S
             try:
-                self.procesos[row].es[(column - 4) // 2]["ie"] = int(new_value)
+                self.procesos[row].es[(column - 4) // 2]["es"] = int(new_value)
             except ValueError:
                 # Si el valor no es un entero, mantener el valor anterior
                 pass
         else:  # Entradas de NCPU en E/S
             try:
-                self.procesos[row].es[(column - 5) // 2]["ie_necesaria"] = int(new_value)
+                self.procesos[row].es[(column - 5) // 2]["es_necesaria"] = int(new_value)
             except ValueError:
                 # Si el valor no es un entero, mantener el valor anterior
                 pass
@@ -127,12 +130,12 @@ class ProcesoApp:
             
             if proceso.es:
                 for j in range(len(proceso.es)):
-                    es_var = tk.StringVar(value=str(proceso.es[j]["ie"]))
+                    es_var = tk.StringVar(value=str(proceso.es[j]["es"]))
                     es_entry = tk.Entry(self.root, textvariable=es_var)
                     es_entry.grid(row=i+2, column=4+j*2, padx=10, pady=10)
                     es_entry.bind("<FocusOut>", lambda event, row=i, column=4+j*2, variable=es_var: self.guardar_cambios( row, column, variable))
                     
-                    ncpu_es_var = tk.StringVar(value=str(proceso.es[j]["ie_necesaria"]))
+                    ncpu_es_var = tk.StringVar(value=str(proceso.es[j]["es_necesaria"]))
                     ncpu_es_entry = tk.Entry(self.root, textvariable=ncpu_es_var)
                     ncpu_es_entry.grid(row=i+2, column=5+j*2, padx=10, pady=10)
                     ncpu_es_entry.bind("<FocusOut>", lambda event, row=i, column=5+j*2, variable=ncpu_es_var: self.guardar_cambios( row, column, variable))
@@ -152,12 +155,12 @@ class ProcesoApp:
         for proceso in self.procesos:
             proceso.tiempo_llegada = int(proceso.tiempo_llegada)
             proceso.ncpu = int(proceso.ncpu) * tamanoQ
-            for ie in proceso.es:
-                ie['ie'] = int(ie['ie']) * tamanoQ
-                ie['ie_necesaria'] = int(ie['ie_necesaria']) * tamanoQ
+            for es in proceso.es:
+                es['es'] = int(es['es']) * tamanoQ
+                es['es_necesaria'] = int(es['es_necesaria']) * tamanoQ
 
         #quantum_necesario = ncpu 
-        #es= lista_ie
+        #es= lista_es
         
         #print(procesos)
         procesos['tamanoQ'] = tamanoQ
@@ -177,8 +180,10 @@ def ejecutar():
             'nombre': proceso.nombre,
             'tiempo_llegada': proceso.tiempo_llegada,
             'quantum_necesario': proceso.ncpu,
-            'lista_ie': proceso.es
+            'lista_es': proceso.es
         }
         procesosFin.append(proceso_dict)
     print(procesosFin)
-    return procesos
+    obtener_entrada_usuario(procesos)
+
+ejecutar()
