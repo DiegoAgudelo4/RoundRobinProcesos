@@ -5,9 +5,10 @@ from collections import deque
 #modulo para graficar
 from Graficar import draw_gantt_chart
 
-cola_fifo = deque()
+cola_fifo = deque() #Cola de listos
 procesos = []
 tiempos_espera=[]
+
 
 class Proceso:
     def __init__(self, nombre, tiempo_llegada, quantum_necesario):
@@ -31,32 +32,45 @@ def agregarFinalDeCola(nombre,tiempo_llegada,quantum_necesario):
 
 def verificarES(tiempo):
     global tiempos_espera
+    global cantTerminados
     n= len(procesos)
     for i in range(n):
         if procesos[i]['quantum_necesario'] == 0:
             if procesos[i]['nombre'] in  nombres_en_cola:
                 nombres_en_cola.remove(procesos[i]['nombre'])
             m = len(procesos[i]['lista_es'])
-            for j in range(m):
+            if m>0:
+                for j in range(m):
+                    
+                    llegada = procesos[i]['lista_es'][j]['es'] #2, 40ms, 25ms
+                    if llegada != 0:
+                        nuevaLlegada=llegada+tiempo
 
-                llegada = procesos[i]['lista_es'][j]['es']
-                if llegada != 0:
-                    nuevaLlegada=llegada+tiempo
+                        tiempos_espera.append(procesos[i]['nombre']+":"+str(tiempo) + "+" + str(procesos[i]['lista_es'][j]['es']) + "=" +
+                                            str(nuevaLlegada))
 
-                    tiempos_espera.append(procesos[i]['nombre']+":"+str(tiempo) + "+" + str(procesos[i]['lista_es'][j]['es']) + "=" +
-                                          str(nuevaLlegada))
+                        procesos[i]['lista_es'][j]['es']=0
+                        qnecesario = procesos[i]['lista_es'][j]['es_necesaria']#1
+                        procesos[i]['lista_es'][j]['es_necesaria']=0
+                        #print(procesos)
+                        actualizaProceso(procesos[i]['nombre'], nuevaLlegada, qnecesario)
+                        break
+  
 
-                    procesos[i]['lista_es'][j]['es']=0
-                    qnecesario = procesos[i]['lista_es'][j]['es_necesaria']
-                    procesos[i]['lista_es'][j]['es_necesaria']=0
-                    #print(procesos)
-                    actualizaProceso(procesos[i]['nombre'], nuevaLlegada, qnecesario)
-                    break
+                
+
+
+        
 nombres_en_cola = set()
 def verificarProcesos(tiempo):
     global nombres_en_cola
     global procesos
+    """meter una funcion que ordene por tiempo_llegada los procesos antes de ver quien pasa a cola de listos"""
+
+    procesos = sorted(procesos, key=lambda x: x['tiempo_llegada'])
+
     n= len(procesos)
+    
     for i in range(n):
         print(procesos[i]['nombre']+": "+str(procesos[i]['tiempo_llegada']) + "<= " +str(tiempo)+ " Q nec" +str(procesos[i]['quantum_necesario']))
 
@@ -65,6 +79,7 @@ def verificarProcesos(tiempo):
             #para que no se ingresen repetidos
             if procesos[i]['nombre'] not in nombres_en_cola:
                 print(procesos[i]['nombre'] + ": agregada a la cola")
+
                 agregarFinalDeCola(procesos[i]['nombre'], procesos[i]['tiempo_llegada'],procesos[i]['quantum_necesario'])
 
                 # Agregar el nombre a la lista de nombres en la cola
@@ -93,6 +108,7 @@ def actualizaProceso(nombre,llegada, quantum_necesario):
 def round_robin(procesos, quantum, tiempo_intcambio):
     global cola_fifo
     global tiempos_espera
+    cantProcesos= len(procesos)
     #inicializamos las variables
     tiempo = 0
     diagrama_gantt = []
@@ -105,7 +121,7 @@ def round_robin(procesos, quantum, tiempo_intcambio):
     #inicializamos el tiempo final en 0| tmp = tiempo
    
     tmpProcesos = [{'nombre': proceso['nombre'],'tmpLlegada':proceso['tiempo_llegada'],'tmpInicial': 'Null', 'tmpFinal': 0, 'restaES': 0} for proceso in procesos]
-    
+
     #restaES: suma todos las ES para calcular el tiempo de vuelta
     for i in range(len(procesos)):
         tmpProcesos[i]['restaES']+= procesos[i]['tiempo_llegada']
@@ -119,82 +135,119 @@ def round_robin(procesos, quantum, tiempo_intcambio):
     falta añadir que cuando no haya nadie en la cola el tiempo siga avanzando, porque en este caso el
     ciclo se rompe si no hay nadie en la cola y puede que no haya nadie pero llegue más tarde (Tiempo inactivo)
     """
-    while len(cola_fifo) > 0:
+    while not all(proceso['quantum_necesario']==0 for proceso in procesos):
 
-        print('*********** Tiempo *********** ->>>' +str(tiempo))
-        # Extraer el primer proceso de la cola, osea el primero que entró
-        proceso_actual = cola_fifo.popleft()
+        if len(cola_fifo) >0:
+            print('*********** Tiempo *********** ->>>' +str(tiempo))
+            # Extraer el primer proceso de la cola, osea el primero que entró
+            proceso_actual = cola_fifo.popleft()
 
-        #verificamos que en efecto el tiempo de llegada es menor que el tiempo del sistema
-        if proceso_actual.tiempo_llegada <= tiempo and proceso_actual.quantum_necesario != 0:
-            #mostramos por cosola la validacion
-            print(proceso_actual.nombre + '- ' + str(proceso_actual.tiempo_llegada) + ' Q necesario: ' + str(
-                proceso_actual.quantum_necesario))
+            #verificamos que en efecto el tiempo de llegada es menor que el tiempo del sistema
+            if proceso_actual.tiempo_llegada <= tiempo and proceso_actual.quantum_necesario != 0:
+                #mostramos por cosola la validacion
+                print(proceso_actual.nombre + '- ' + str(proceso_actual.tiempo_llegada) + ' Q necesario: ' + str(
+                    proceso_actual.quantum_necesario))
 
-            #recibimos el tiempo restante del proceso actual
-            tiempo_restante=proceso_actual.quantum_necesario
+                #recibimos el tiempo restante del proceso actual
+                tiempo_restante=proceso_actual.quantum_necesario 
 
-            #verificamos si hay procesos que no necesiten quantum (0) y además
-            #tiene entradas y salidas E/S con necesidad de quantum
-            verificarES(tiempo)
-
-            indice_proceso = next(
-                (i for i, proceso in enumerate(tmpProcesos) if proceso['nombre'] == proceso_actual.nombre), None)
-            if tiempo_restante == procesos[indice_proceso]['quantum_necesario'] and tmpProcesos[indice_proceso][
-                'tmpInicial'] == 'Null':
-                tmpProcesos[indice_proceso]['tmpInicial'] = tiempo
-
-            #verificamos que el tiempo restante sea mayor que el quantum
-            #para que no quede negativo el tiempo restante
-            if tiempo_restante>quantum:
-                tiempo += quantum
-                tiempo_restante -= quantum
-                #antes de agretgar el proceso de nuevo al final de la cola
-                #verificamos si hay procesos esperando
-                verificarProcesos(tiempo)
-                print(proceso_actual.nombre + ": agregada a la cola")
-                #se agrega al final de la cola el procesos con la necesidad de quantum restada
-                agregarFinalDeCola(proceso_actual.nombre, proceso_actual.tiempo_llegada, tiempo_restante)
-            else:
-                #si entra acá significa que ese proceso ya no necesita quantum
-                #se le suma al tiempo el tiempo restante para que no se pierda
-                tiempo += tiempo_restante
-                tiempo_restante = 0
-                #se agrega el tiempo final cuando terminó el proceso
+                #verificamos si hay procesos que no necesiten quantum (0) y además
+                #tiene entradas y salidas E/S con necesidad de quantum
+                verificarES(tiempo)
+                
+                #cuando inicia el proceso actual, se actualiza el tmpInicial de ese proceso
                 indice_proceso = next(
                     (i for i, proceso in enumerate(tmpProcesos) if proceso['nombre'] == proceso_actual.nombre), None)
-                tmpProcesos[indice_proceso]['tmpFinal']=tiempo
-                print(f"{proceso_actual.nombre}  termina en  {tiempo}")
-                #verificamos si hay procesos esperando
-                verificarProcesos(tiempo)
-            #actualizamos los procesos en arreglo de procesos
-            #se hace porque la funcion verificarProcesos(tiempo) se vasa en ese arreglo
-            actualizaProceso(proceso_actual.nombre, proceso_actual.tiempo_llegada, tiempo_restante)
+                
+                if tiempo_restante == procesos[indice_proceso]['quantum_necesario'] and tmpProcesos[indice_proceso][
+                    'tmpInicial'] == 'Null':
+                    tmpProcesos[indice_proceso]['tmpInicial'] = tiempo
 
-            #print("Resta: "+procesado.nombre+"->"+str(procesado.quantum_necesario))
-
-            #guardamos el proceso en un arreglo con el rango de tiempo en el que estuvo
-            diagrama_gantt.append({'proceso': proceso_actual.nombre, 'inicio': tiempo - quantum, 'fin': tiempo})
-
-            #guardamos la cola, la que ya pasó por la cola de procesos y fue procesada (en un string)
-            cola_listos.append("|" + str(proceso_actual.quantum_necesario) + "|" + proceso_actual.nombre)
-            if co ==10:
-                cola_listos.append("\n")
-                co=0
-            co+=1
-
-            #con esta funcion mostramos la cola en cada iteracion
-            mostrarCola()
-
-            #mostramos cuando fué el intercambio
-            print('*********** intercambio ****** ->>>' + str(tiempo)+"+"+str(tiempo_intcambio))
+                #verificamos que el tiempo restante sea mayor que el quantum
+                #para que no quede negativo el tiempo restante
             
-            #verificarProcesos(tiempo)
-            #se actualiza el tiempo sumandole el tiempo de intercambio
-            tiempo += tiempo_intcambio
-            #se agrega al diagrama de grant para que se observe el intercambio
-            diagrama_gantt.append({'proceso': 'I', 'inicio': tiempo - tiempo_intcambio, 'fin': tiempo})
-    diagrama_gantt.pop()
+                if tiempo_restante>quantum:
+                    tiempo += quantum
+                    tiempo_restante -= quantum
+                    #antes de agretgar el proceso de nuevo al final de la cola
+                    #verificamos si hay procesos esperando
+                    verificarProcesos(tiempo) 
+                    print(proceso_actual.nombre + ": agregada a la cola")
+                    #se agrega al final de la cola el procesos con la necesidad de quantum restada
+                    agregarFinalDeCola(proceso_actual.nombre, proceso_actual.tiempo_llegada, tiempo_restante)
+                
+                else:
+                    #si entra acá significa que ese proceso ya no necesita quantum
+                    #se le suma al tiempo el tiempo restante para que no se pierda
+                    tiempo += tiempo_restante
+                    tiempo_restante = 0
+                    #se agrega el tiempo final cuando terminó el proceso
+                    
+                    indice_proceso = next(
+                        (i for i, proceso in enumerate(tmpProcesos) if proceso['nombre'] == proceso_actual.nombre), None)
+                    tmpProcesos[indice_proceso]['tmpFinal']=tiempo
+                    print(f"{proceso_actual.nombre}  termina en  {tiempo}")
+                    #verificamos si hay procesos esperando
+                    verificarProcesos(tiempo)
+                #actualizamos los procesos en arreglo de procesos
+                #se hace porque la funcion verificarProcesos(tiempo) se vasa en ese arreglo
+                actualizaProceso(proceso_actual.nombre, proceso_actual.tiempo_llegada, tiempo_restante)
+
+                #print("Resta: "+procesado.nombre+"->"+str(procesado.quantum_necesario))
+
+                #guardamos el proceso en un arreglo con el rango de tiempo en el que estuvo
+                diagrama_gantt.append({'proceso': proceso_actual.nombre, 'inicio': tiempo - quantum, 'fin': tiempo})
+                """[{'proceso': p0
+                'inicio':0
+                'fin': 20 },
+                
+                ]"""
+
+                #guardamos la cola, la que ya pasó por la cola de procesos y fue procesada (en un string)
+                cola_listos.append("|" + str(proceso_actual.quantum_necesario) + "|" + proceso_actual.nombre)
+                if co ==10:
+                    cola_listos.append("\n")
+                    co=0
+                co+=1
+
+                #con esta funcion mostramos la cola en cada iteracion
+                mostrarCola()
+
+                #mostramos cuando fué el intercambio
+                print('*********** intercambio ****** ->>>' + str(tiempo)+"+"+str(tiempo_intcambio))
+                
+                #verificarProcesos(tiempo)
+                #se actualiza el tiempo sumandole el tiempo de intercambio
+                tiempo += tiempo_intcambio
+                #se agrega al diagrama de grant para que se observe el intercambio
+                diagrama_gantt.append({'proceso': 'Intercambio', 'inicio': tiempo - tiempo_intcambio, 'fin': tiempo})
+                """[{'proceso': p0
+                'inicio':0
+                'fin': 20 },
+                {'proceso': i
+                'inicio':20
+                'fin': 25 },
+                {'proceso': p1
+                'inicio':25
+                'fin': 45 },
+                {'proceso': i
+                'inicio':45
+                'fin': 50 },
+                ]"""
+                verificarES(tiempo)
+        else:
+            verificarES(tiempo)
+            verificarProcesos(tiempo) 
+            tiempo+=quantum
+            diagrama_gantt.append({'proceso': 'Inactivo', 'inicio': tiempo - quantum, 'fin': tiempo})
+            tiempo+=tiempo_intcambio
+            diagrama_gantt.append({'proceso': 'Intercambio', 'inicio': tiempo - tiempo_intcambio, 'fin': tiempo})
+            verificarES(tiempo)
+            verificarProcesos(tiempo)
+            mostrarCola() 
+            print("*********** inactivo ****** ")
+    if cantProcesos !=1:
+        diagrama_gantt.pop()
 
     # Mostrar cola de listos
     print("\nCola de Listos:")
@@ -211,7 +264,7 @@ def round_robin(procesos, quantum, tiempo_intcambio):
         i+=1
     print("\n************************************************ Fin diagrama ************************************************")
     # Mostrar tiempos de espera
-    print("\nTiempos de Espera:")
+    print("\nCola de Espera (E/S):")
     print(tiempos_espera)
     print("\n******************** tiempo de vuelta ********************")
 
@@ -220,6 +273,7 @@ def round_robin(procesos, quantum, tiempo_intcambio):
     tmpVueltaTotal=0
     n=len(tmpProcesos)
     for i in range(n):
+        #tiempo de vuelta es igual a: [tiempo en el que termina sin intercambio] menos [tiempo menos ]
         tmpVuelta.append(tmpProcesos[i]['tmpFinal']-tmpProcesos[i]['restaES'])
         tmpVueltaTotal+=tmpVuelta[i]
         print(" Tiempo de vuelta del Proceso ["+tmpProcesos[i]['nombre']+"]: "+ str(tmpVuelta[i]))
@@ -246,7 +300,6 @@ def obtener_ie():
 
 def obtener_entrada_usuario(info):
     global procesos
-    
     
     print(info['tamanoQ'])
     quantum=int(info['tamanoQ']) #ms

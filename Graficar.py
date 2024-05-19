@@ -9,9 +9,9 @@ import numpy as np
 def generar_colores(procesos):
     colores = {}
     # Asignar color verde al proceso 'I'
-    colores['I'] = 'green'
+    colores['Intercambio'] = 'green'
     # Generar colores aleatorios para los otros procesos
-    otros_procesos = set(proceso['proceso'] for proceso in procesos) - {'I'}
+    otros_procesos = set(proceso['proceso'] for proceso in procesos) - {'Intercambio'}
     num_otros_procesos = len(otros_procesos)
     colores_aleatorios = plt.cm.tab10(np.linspace(0, 1, num_otros_procesos))
     for proceso, color in zip(otros_procesos, colores_aleatorios):
@@ -29,7 +29,7 @@ def draw_gantt_chart(data):
     #ax.grid(True, linewidth=1.5)  # Cambia el ancho de la cuadrícula aquí
     
     # Ordenar los datos para mostrar primero el proceso 'I'
-    data.sort(key=lambda x: (x['proceso'] != 'I', x['inicio']))
+    data.sort(key=lambda x: (x['proceso'] != 'Intercambio', x['inicio']))
     
     # Generar colores dinámicamente
     colores_procesos = generar_colores(data)

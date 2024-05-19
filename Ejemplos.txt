@@ -15,7 +15,7 @@
 
 
 Funcion para llenar los procesos a mano
-
+ie=es
 def llenar_procesos():
     num_procesos = int(input('Ingrese el número de procesos: '))
 
@@ -37,10 +37,12 @@ def llenar_procesos():
         procesos.append(proceso)
 
 
+
 {'tamanoQ': 20, 
-'tamanoI': '10', 
+'tamanoI': 10, 
 'procesos': 
-    [{'nombre': 'P0', 'tiempo_llegada': 0, 'quantum_necesario': 40, 'lista_ie': [{'ie': 40, 'ie_necesaria': 20}]}, 
-    {'nombre': 'P1', 'tiempo_llegada': 25, 'quantum_necesario': 60, 'lista_ie': [{'ie': 0, 'ie_necesaria': 0}]}, 
-    {'nombre': 'P2', 'tiempo_llegada': 35, 'quantum_necesario': 40, 'lista_ie': [{'ie': 0, 'ie_necesaria': 0}]}]
+    [{'nombre': 'P0', 'tiempo_llegada': 0, 'quantum_necesario': 20, 'lista_es': [{'es': 40, 'es_necesaria': 20}, {'es': 40, 'es_necesaria': 20}]}
+    , {'nombre': 'P1', 'tiempo_llegada': 10, 'quantum_necesario': 40, 'lista_es': [{'es': 20, 'es_necesaria': 40}, {'es': 0, 'es_necesaria': 0}]}, 
+    {'nombre': 'P2', 'tiempo_llegada': 20, 'quantum_necesario': 100, 'lista_es': [{'es': 0, 'es_necesaria': 0}, {'es': 0, 'es_necesaria': 0}]}, 
+    {'nombre': 'P3', 'tiempo_llegada': 110, 'quantum_necesario': 40, 'lista_es': [{'es': 0, 'es_necesaria': 0}, {'es': 0, 'es_necesaria': 0}]}]
 }

@@ -2,8 +2,9 @@
 import tkinter as tk
 #procesar 
 from RoundRobin import obtener_entrada_usuario
+cantProcesos=0
 class Proceso:
-    def __init__(self, nombre="Nuevo", tiempo_llegada=0, ncpu=0, es=None):
+    def __init__(self, nombre="nuevo", tiempo_llegada=0, ncpu=0, es=None):
         self.nombre = nombre
         self.tiempo_llegada = tiempo_llegada
         self.ncpu = ncpu
@@ -26,6 +27,7 @@ class ProcesoApp:
         self.tamanoQ_label.grid(row=0, column=3, padx=10, pady=10)
 
         self.tamanoQ= tk.StringVar()
+        self.tamanoQ.set("50")
         self.tamanoQ_Entry = tk.Entry(textvariable = self.tamanoQ, width="10",name="noDel_5")
         self.tamanoQ_Entry.grid(row=0, column=4, padx=10, pady=10)
 
@@ -33,6 +35,7 @@ class ProcesoApp:
         self.tamanoI_label.grid(row=0, column=5, padx=10, pady=10)
 
         self.tamanoI= tk.StringVar()
+        self.tamanoI.set("10")
         self.tamanoI_Entry = tk.Entry(textvariable=self.tamanoI, width="10",name="noDel_7")
         self.tamanoI_Entry.grid(row=0, column=6, padx=10, pady=10)
         
@@ -48,8 +51,10 @@ class ProcesoApp:
             lbl.grid(row=1, column=i, padx=10, pady=10)
     
     def agregar_proceso(self):
+        global cantProcesos
         self.guardar_cambios_todos()
-        proceso = Proceso()
+        proceso = Proceso(nombre=f"P{cantProcesos}")
+        cantProcesos+=1
         self.procesos.append(proceso)
         self.mostrar_procesos()
     
@@ -114,7 +119,7 @@ class ProcesoApp:
             btn_eliminar.grid(row=i+2, column=0, padx=10, pady=10)
             
             nombre_var = tk.StringVar(value=proceso.nombre)
-            nombre_entry = tk.Entry(self.root, textvariable=nombre_var)
+            nombre_entry = tk.Label(self.root, textvariable=nombre_var)
             nombre_entry.grid(row=i+2, column=1, padx=10, pady=10)
             nombre_entry.bind("<FocusOut>", lambda event, row=i, column=1, variable=nombre_var: self.guardar_cambios( row, column, variable))
             
