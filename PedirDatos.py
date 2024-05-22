@@ -2,6 +2,7 @@
 import tkinter as tk
 #procesar 
 from RoundRobin import obtener_entrada_usuario
+
 puedeContinuar=True
 cantProcesos=0
 class Proceso:
@@ -218,10 +219,7 @@ class ProcesoApp:
         #print(f"Puede continuar al ejecutar {puedeContinuar}")
         if puedeContinuar and len(self.procesos) >0:
             procesos = {}
-
             # Asigna los valores a las variables dentro de tu función o método
-            
-            
             try:
                 tamanoQ = int(self.tamanoQ.get())
                 tamanoI= int( self.tamanoI.get())
@@ -233,7 +231,14 @@ class ProcesoApp:
                     return
             except ValueError:
                 print("Caracter invalido")
-                return           
+                return
+            #verificar que no hayan nombres de procesos repetidos
+            nombres = set()
+            for proceso in self.procesos:
+                if proceso.nombre in nombres:
+                    print("Existen procesos con el mismo nombre.")
+                    return
+                nombres.add(proceso.nombre)           
             #multiplicamos cada valor por el tamaño del quantum para
             #enviar todo en ms
             for proceso in self.procesos:

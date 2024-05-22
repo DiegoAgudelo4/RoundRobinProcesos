@@ -1,6 +1,9 @@
 Funcion para llenar los procesos a mano
 ie=es
 def llenar_procesos():
+    ingrese el tamano de quantum
+    ingrese el tamano de intercambio
+    tamanoQ=int(input(f'ingrese el tamano de quantum: '))
     num_procesos = int(input('Ingrese el número de procesos: '))
 
     for i in range(num_procesos):

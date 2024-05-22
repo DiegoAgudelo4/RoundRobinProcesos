@@ -111,7 +111,7 @@ def actualizaProceso(nombre,llegada, quantum_necesario):
         proceso_encontrado['quantum_necesario'] = quantum_necesario   # Reemplaza "nuevo_valor_quantum" con el valor que desees
 
         # Imprimir para verificar la actualización
-        print(f"Proceso {nombre} actualizado. entrada: {llegada} Nuevo valor de quantum_necesario: {proceso_encontrado['quantum_necesario']}")
+        #print(f"Proceso {nombre} actualizado. entrada: {llegada} Nuevo valor de quantum_necesario: {proceso_encontrado['quantum_necesario']}")
 
 #inicio del ciclo principal
 def round_robin(procesos, quantum, tiempo_intcambio):
@@ -200,7 +200,7 @@ def round_robin(procesos, quantum, tiempo_intcambio):
                     indice_proceso = next(
                         (i for i, proceso in enumerate(tmpProcesos) if proceso['nombre'] == proceso_actual.nombre), None)
                     tmpProcesos[indice_proceso]['tmpFinal']=tiempo
-                    print(f"{proceso_actual.nombre}  termina en  {tiempo}")
+                    #print(f"{proceso_actual.nombre}  termina en  {tiempo}")
 
                     #verificamos si hay procesos esperando
                     verificarProcesos(tiempo)
@@ -214,7 +214,9 @@ def round_robin(procesos, quantum, tiempo_intcambio):
                 diagrama_gantt.append({'proceso': proceso_actual.nombre, 'inicio': tiempo - quantum, 'fin': tiempo})
 
                 #guardamos la cola, la que ya pasó por la cola de procesos y fue procesada (en un string)
-                cola_listos.append("""
+                cola_listos.append({'nombre':proceso_actual.nombre, 'quantum':proceso_actual.quantum_necesario/quantum})
+                """
+                cola_listos.append(
                                     <table border="1" align="center">
                                         <tr>
                                             <td align="center">{}</td>
@@ -223,8 +225,8 @@ def round_robin(procesos, quantum, tiempo_intcambio):
                                             <td align="center">{}</td>
                                         </tr>
                                     </table>
-                                    """.format(proceso_actual.nombre, proceso_actual.quantum_necesario/quantum))
-
+                                    .format(proceso_actual.nombre, proceso_actual.quantum_necesario/quantum))
+                """
                 #if co ==10:
                 #    cola_listos.append("\n")
                 #    co=0
@@ -270,8 +272,7 @@ def round_robin(procesos, quantum, tiempo_intcambio):
     # Mostrar cola de listos
     #print("\nCola de Listos:")
     #print(" -> ".join(cola_listos))
-    StringColaListos="<html> <h3>Cola de listos</h3><br/>"
-    StringColaListos+=" -> ".join(cola_listos)
+    
 
     # Mostrar diagrama de Gantt
     #print("\n************************************************Diagrama de Gantt:************************************************\n Inicio - Fin : Proceso")
@@ -287,12 +288,12 @@ def round_robin(procesos, quantum, tiempo_intcambio):
     #print("\nCola de Espera (E/S):")
     #print(tiempos_espera)
     #print("\n******************** tiempo de vuelta ********************")
-    StringColaListos+=f"<br/> <br/>Cola de Espera (E/S):<br/>{"<br/>".join(tiempos_espera)}"
+    #StringColaListos+=f"<br/> <br/>Cola de Espera (E/S):<br/>{"<br/>".join(tiempos_espera)}"
 
     #calculamos el tiempo de vuelta
     tmpVuelta=[]
     tmpVueltaTotal=0
-    StringTiempoVuelta="Tiempo de vuelta por cada proceso<br/>"
+    StringTiempoVuelta="b) Tiempo de vuelta por cada proceso<br/>"
     n=len(tmpProcesos)
     for i in range(n):
         #tiempo de vuelta es igual a: [tiempo en el que termina sin intercambio] menos [tiempo menos ]
@@ -305,7 +306,7 @@ def round_robin(procesos, quantum, tiempo_intcambio):
     #calculamos el tiempo de espera
     tmpEspera=[]
     tmpEsperaTotal=0
-    StringTiempoVuelta+="<br/><h3>Tiempo de espera por cada proceso</h3><br/>"
+    StringTiempoVuelta+="<br/><h3>d). Tiempo de espera por cada proceso</h3><br/>"
     for i in range(n):
         tmpEspera.append(int(tmpProcesos[i]['tmpInicial'] if tmpProcesos[i]['tmpInicial'] != 'Null' else 0)-int(tmpProcesos[i]['tmpLlegada']))
         tmpEsperaTotal+=tmpEspera[i]
@@ -314,25 +315,21 @@ def round_robin(procesos, quantum, tiempo_intcambio):
     #print("\n******************** tiempo de vuelta promedio ********************")
     if n!=0:
         print(tmpVueltaTotal/n)
-        StringTiempoVuelta+=f"<br/><h3>Tiempo medio de vuelta</h3><br/> {tmpVueltaTotal} / {n} = {tmpVueltaTotal/n} <br/>"
-    else:
-        print("0")
+        StringTiempoVuelta+=f"<br/><h3>c). Tiempo medio de vuelta</h3><br/> {tmpVueltaTotal} / {n} = {tmpVueltaTotal/n} <br/>"
+    #else:
+    #    print("0")
 
     #print("\n******************** tiempo de espera promedio ********************")
     if n!=0:
         print(tmpEsperaTotal/n)
-        StringTiempoVuelta+=f"<br/><h3>Tiempo medio de espera</h3><br/> {tmpEsperaTotal} / {n} = {tmpVueltaTotal/n}<br/>"
-    else:
-        print("0")
-    StringColaListos+="</html>"
-    draw_gantt_chart_pdf(diagrama_gantt,len(procesos),StringColaListos,StringTiempoVuelta,procesos_original,"gantt_chart.pdf")
+        StringTiempoVuelta+=f"<br/><h3>e). Tiempo medio de espera</h3><br/> {tmpEsperaTotal} / {n} = {tmpVueltaTotal/n}<br/>"
+    #else:
+    #    print("0")
+    strTiempoEspera=f"<br/> <br/>Cola de Espera (E/S):<br/>{"<br/>".join(tiempos_espera)}"
+    draw_gantt_chart_pdf(diagrama_gantt,len(procesos),strTiempoEspera,StringTiempoVuelta,cola_listos,procesos_original,"gantt_chart.pdf",quantum, tiempo_intcambio)
     
 
-# Solicitar entrada al usuario para cada proceso
-def obtener_ie():
-    ie = int(input('Ingrese E/S: '))
-    ie_necesaria = int(input('Ingrese el quantum Necesario E/S: '))
-    return {'es': ie, 'es_necesaria': ie_necesaria}
+
 
 def obtener_entrada_usuario(info):
     global procesos

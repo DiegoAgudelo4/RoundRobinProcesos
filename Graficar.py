@@ -49,7 +49,7 @@ def draw_gantt_chart(data, cantProcesos):
     fig, ax = plt.subplots(figsize=(10, 5))
     
     # Añadir más espacio arriba y abajo del gráfico
-    fig.subplots_adjust(top=0.8, bottom=cantProcesos / 10)
+    fig.subplots_adjust(top=0.8, bottom=0.1)
     
     ax.set_title('Diagrama de Gantt: Procesos en funcion del tiempo')
     ax.set_xlabel('Tiempo (ms)')
@@ -82,8 +82,36 @@ def draw_gantt_chart(data, cantProcesos):
 
     return img_filename
 
+def crearColaListos(cola_listos, max_procesos_por_fila=10):
+    tablas = []
+    # Dividir los procesos en grupos de tamaño max_procesos_por_fila
+    for i in range(0, len(cola_listos), max_procesos_por_fila):
+        chunk = cola_listos[i:i + max_procesos_por_fila]
+        
+        # Crear los datos de la tabla
+        nombres = [entrada['nombre'] for entrada in chunk]
+        quantums = [entrada['quantum'] for entrada in chunk]
+        data = [nombres, quantums]
+
+        # Crear la tabla
+        tabla = Table(data)
+        tabla.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.white),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        tablas.append(tabla)
+        tablas.append(Spacer(1, 12))  # Añadir espacio entre las tablas
+    return tablas
+
+
+
 # Función para crear el PDF
-def draw_gantt_chart_pdf(data, cantProcesos, texto_superior, texto_inferior,procesos, output_filename):
+def draw_gantt_chart_pdf(data, cantProcesos, strTiempoEspera, texto_inferior,cola_listos,procesos, output_filename,quantum,intercambio):
     # Crear el documento PDF
     doc = SimpleDocTemplate(output_filename, pagesize=letter)
     story = []
@@ -91,23 +119,33 @@ def draw_gantt_chart_pdf(data, cantProcesos, texto_superior, texto_inferior,proc
     # Estilo para el texto
     styles = getSampleStyleSheet()
     estilo_superior = styles['Normal']
-
+    story.append(Paragraph(f"1). Usando el algoritmo de planificacion Round Robin con un Quantum de tamaño {quantum} milisegundos y un intercambio de tamaño {intercambio} milisegundos <br/> <br/> <br/>", estilo_superior))
+    #tabla de procesos
     tabla_procesos = Table(generar_tabla_procesos(procesos))
     tabla_procesos.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                                         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                                         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                                        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
                                         ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
     story.append(tabla_procesos)
     story.append(Spacer(1, 12))
 
+    #Cola de listos
+    story.append(Paragraph("Cola de listos", estilo_superior))
+    story.append(Spacer(1, 12))
+    
+    # Añadir todas las tablas y espaciadores a `elements` individualmente
+    for item in crearColaListos(cola_listos):
+        story.append(item)
+
     # Agregar texto superior
-    story.append(Paragraph(texto_superior, estilo_superior))
+    story.append(Paragraph(strTiempoEspera, estilo_superior))
     story.append(Spacer(1, 12))
 
     # Generar y agregar la imagen del gráfico
+    story.append(Paragraph("a). Diagrama de Gantt", estilo_superior))
     img_filename = draw_gantt_chart(data, cantProcesos)
     story.append(Image(img_filename, width=480, height=240))
     story.append(Spacer(1, 12))
